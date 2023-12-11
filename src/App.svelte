@@ -1,73 +1,69 @@
 <script>
   import data from "./data/data.js";
-  console.log(data);
-
-  let width = 400;
-  let height = 400;
-
-  const margin = { top: 20, right: 40, left: 0, bottom: 20 };
-
-  import { scaleLinear } from "d3-scale";
-  $: xScale = scaleLinear()
-    .domain([0, 100])
-    .range([0, width - margin.left - margin.right]);
-
-  import { max } from "d3-array";
-  const yScale = scaleLinear()
-    .domain([0, max(data, d => d.hours)])
-    .range([height - margin.top - margin.bottom, 0]);
-
+  import {scaleLinear} from "d3-scale";
+  import {max} from "d3-array";
   import AxisX from "./components/AxisX.svelte";
   import AxisY from "./components/AxisY.svelte";
   import Tooltip from "./components/Tooltip.svelte";
 
+  let width = 400;
+  let height = 400;
   let hoveredData;
-  $: console.log(hoveredData);
-</script>
 
-<h1>Study longer, score better!</h1>
-<div class='chart-container' 
-  bind:clientWidth={width}
-  on:mouseleave={() => {
-    hoveredData = null;
-  }}>
-<svg {width} {height}>
-  <AxisX {height} {xScale} {margin} />
-  <AxisY {height} {width} {yScale} {margin} />
-  <g class='circles' transform="translate({margin.left} {margin.top})">
-  {#each data.sort((a,b) => a.grade - b.grade) as student}
-	  <circle cx={xScale(student.grade)} 
-            cy={yScale(student.hours)} 
-            r={hoveredData && hoveredData == student ? "20" : "10"}
-            opacity={hoveredData ? hoveredData == student ? "1" : ".3" : "1"}
-            fill="purple"
-            stroke="black" 
-            on:mouseover={() => {
-              hoveredData = student;
-            }}
-            on:focus={() => {
-              hoveredData = student;
-            }}
-            tabIndex="0"
-            />
-  {/each}
-  </g>
-</svg>
-{#if hoveredData}
-	<Tooltip data={hoveredData} {xScale} {yScale} />
-{/if}
-</div>
+  const margin = {top: 20, right: 40, left: 0, bottom: 20};
+
+  // when the width changes, xScale changes
+  $: xScale = scaleLinear()
+    .domain([0, 100])
+    .range([0,width - margin.left - margin.right]);
+
+  const yScale = scaleLinear()
+    .domain([0, max(data , d => d.hours)])
+    .range([height - margin.top - margin.bottom, 0]);
+
+  // svg start 0, 0 top left, swap the numbers in range for yScale
+
+</script>
+  <h1>Study longer, score better!</h1>
+  <!-- add container for responsiveness, the width will change when clientWidth of this div changes -->
+  <div class="chart-container"
+        bind:clientWidth={width}
+        on:mouseleave={() => {hoveredData = null;}}>
+    <svg {width} {height}>
+      <!-- add the x-axis to the graph -->
+      <AxisX {height} {xScale} {margin}/>
+      <!-- add the y-axis to the graph -->
+      <AxisY {width} {yScale} {margin}/>
+
+      <!-- add circular data points to the graph -->
+        <g transform="translate({margin.left} {margin.top})">
+          {#each data.sort((a,b) => a.grade - b.grade) as student}
+          <circle cx={xScale(student.grade)}
+                  cy={yScale(student.hours)}
+                  r={hoveredData && hoveredData == student ? '20' : '10'}
+                  opacity={hoveredData ? hoveredData == student ? '1' : '0.3' : '1'}
+                  fill="purple"
+                  stroke="black"
+                  on:mouseover={() => {hoveredData = student;}}
+                  on:focus={() => {hoveredData = student;}}
+                  tabindex="0"/>
+          {/each}
+        </g>
+    </svg>
+    {#if hoveredData}
+      <Tooltip data={hoveredData} {xScale} {yScale}/>
+    {/if}
+  </div>
 
 <style>
   circle {
     transition: r 300ms ease, opacity 300ms ease;
     cursor: pointer;
   }
-
-  circle:focus {
+  /* remove the square around the circle */
+  circle:focus{
     outline: none;
   }
-
   h1 {
     font-size: 1.5rem;
     font-weight: 600;
